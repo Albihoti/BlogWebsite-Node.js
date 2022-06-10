@@ -2,12 +2,12 @@
 
 
  <h1>Home</h1>
- <p><%=homeContent%></p>
+ <p><%=startingContent%></p>
 
 
-    <%posts.forEach(function(element){%>
-        <h1><%=element.title%></h1>
-        <p><%=element.content.substring(0,100)+" ...";%><a href="/posts/<%=element.title%>">Read More</a></p>
+    <%newListItems.forEach(function(element){%>
+        <h3><%=element.title%></h3>
+        <p><%=element.content.substring(0,100)+" ...";%><a href="/foundItems/<%=element._id%>">Read More</a></p>
         <%});%>
 
 

@@ -3,6 +3,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
+const mongoose = require("mongoose");
 const _ = require("lodash");
 
 const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
@@ -16,12 +17,24 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-const posts=[];
+mongoose.connect("mongodb://localhost:27017/blogDB",{useNewUrlParser: true});
+
+
+const itemsSchema={
+  title:String,
+  content: String
+};
+const Item = mongoose.model("Item",itemsSchema);
+
+
 app.get("/", function(req, res){
-  res.render("home", {
-    homeContent: homeStartingContent,
-    posts:posts
-  });
+  Item.find({}, function(err, foundItems){
+    res.render("home", {
+      startingContent: homeStartingContent,
+      newListItems:foundItems
+    });
+  })
+  
   
 })
 
@@ -39,27 +52,32 @@ app.get("/compose", function(req, res){
   res.render("compose");
 })
 
-app.get("/posts/:topic", function(req, res){
+app.get("/foundItems/:postId", function(req, res){
   const requestedContent = _.lowerCase(req.params.topic);
+  const requestedPostId = req.params.postId;
+  
+  Item.findOne({_id: requestedPostId},function(err,post){
+    res.render("post",{
+      title:post.title,
+      content:post.content
+    });
+  });
 
-      posts.forEach(function(element){
-        const storedTitle = _.lowerCase(element.title);
-        if(requestedContent === storedTitle){
-         res.render("post",{
-           title: element.title,
-           content: element.content
-         });
-        }
-      });
+    
 });
 app.post("/compose", function(req, res){
 
-  const post={
+  const post=new Item({
     title:req.body.teksti,
     content: req.body.contenti
-  };
-  posts.push(post);
-  res.redirect("/");
+  });
+  post.save(function(err){
+    if(!err){
+      res.redirect("/")
+    }
+  });
+ 
+
 
 });
 
